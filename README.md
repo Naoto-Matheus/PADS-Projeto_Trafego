@@ -16,7 +16,7 @@ Passos:
 Da forma que eu coloquei os caminhos no globals_and_functions, será criado uma pasta chamada dataset, dentro de AumentoBase e uma pasta dentro de dataset com o nome do vídeo 
 
 
-├── Aumento Base/
+├── AumentoBase/
 │   ├── Raw/
 │   │   └── cam1_2025-06-08_19-26-31.mp4
 │   ├── dataset/
