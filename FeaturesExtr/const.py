@@ -1,0 +1,443 @@
+import os
+import os.path as pth
+
+#MT_DATASET_DIR = '/home/matheusnaoto/Traffic-videos' # diretorio do dataset na pasta pessoal do Matheus
+MT_DATASET_DIR = '/home/mathlima'
+
+#SOURCE_DIR = pth.dirname( pth.abspath(__file__) )
+SOURCE_DIR = '/home/matheusnaoto/' 
+WORK_DIR = pth.dirname( SOURCE_DIR )
+DATASET_DIR = pth.join(WORK_DIR, 'dataset')
+RAW_DIR = pth.join(DATASET_DIR, 'raw-teste')
+PREPROCESSED_DIR = pth.join(DATASET_DIR, 'preprocessed')
+FEATURES_DIR = pth.join(PREPROCESSED_DIR, 'features/matheusNaoto/')
+TARGETS_DIR = pth.join(PREPROCESSED_DIR, 'targets')
+
+## -----------------------------------------------------
+
+# videos_list = ['M2U00001MPG']
+videos_list = os.listdir( pth.join(MT_DATASET_DIR, 'dataset') )
+videos_list.sort()
+VIDEO_LIST = [ d.replace('.','') for d in videos_list ] # lista com nomes dos videos
+
+folds_number = 10 #numero de folds abaixo se for fazer isso para outro fold colocar um if 10F ... if 308 e alterar aqui
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+folds = [dict() for i in range(folds_number)]
+folds[0]["train"] = [
+    "M2U00004MPG",
+    "M2U00006MPG",
+    "M2U00008MPG",
+    "M2U00012MPG",
+    "M2U00014MPG",
+    "M2U00017MPG",
+    "M2U00015MPG",
+    "M2U00016MPG",
+    "M2U00018MPG",
+    "M2U00022MPG",
+    "M2U00024MPG",
+    "M2U00026MPG",
+    "M2U00027MPG",
+    "M2U00029MPG",
+    "M2U00030MPG",
+    "M2U00031MPG",
+    "M2U00035MPG",
+    "M2U00037MPG",
+    "M2U00039MPG",
+    "M2U00043MPG",
+    "M2U00045MPG",
+    "M2U00046MPG",
+    "M2U00047MPG",
+    "M2U00048MPG",
+    "M2U00050MPG"
+]
+folds[0]["val"] = [
+    "M2U00001MPG",
+    "M2U00002MPG",
+    "M2U00003MPG",
+    "M2U00005MPG",
+    "M2U00007MPG",
+    "M2U00019MPG",
+    "M2U00023MPG",
+    "M2U00025MPG",
+    "M2U00032MPG",
+    "M2U00033MPG",
+    "M2U00036MPG"
+]
+folds[1]["train"] = [
+    "M2U00001MPG",
+    "M2U00002MPG",
+    "M2U00003MPG",
+    "M2U00005MPG",
+    "M2U00006MPG",
+    "M2U00008MPG",
+    "M2U00012MPG",
+    "M2U00014MPG",
+    "M2U00015MPG",
+    "M2U00018MPG",
+    "M2U00019MPG",
+    "M2U00022MPG",
+    "M2U00023MPG",
+    "M2U00024MPG",
+    "M2U00025MPG",
+    "M2U00029MPG",
+    "M2U00031MPG",
+    "M2U00032MPG",
+    "M2U00036MPG",
+    "M2U00037MPG",
+    "M2U00039MPG",
+    "M2U00043MPG",
+    "M2U00045MPG",
+    "M2U00046MPG",
+    "M2U00047MPG",
+    "M2U00048MPG",
+    "M2U00050MPG"
+]
+folds[1]["val"] = [
+    "M2U00004MPG",
+    "M2U00007MPG",
+    "M2U00017MPG",
+    "M2U00016MPG",
+    "M2U00026MPG",
+    "M2U00027MPG",
+    "M2U00030MPG",
+    "M2U00033MPG",
+    "M2U00035MPG"
+]
+folds[2]["train"] = [
+    "M2U00001MPG",
+    "M2U00002MPG",
+    "M2U00003MPG",
+    "M2U00007MPG",
+    "M2U00008MPG",
+    "M2U00014MPG",
+    "M2U00017MPG",
+    "M2U00016MPG",
+    "M2U00018MPG",
+    "M2U00019MPG",
+    "M2U00023MPG",
+    "M2U00024MPG",
+    "M2U00025MPG",
+    "M2U00027MPG",
+    "M2U00029MPG",
+    "M2U00030MPG",
+    "M2U00031MPG",
+    "M2U00032MPG",
+    "M2U00033MPG",
+    "M2U00036MPG",
+    "M2U00037MPG",
+    "M2U00039MPG",
+    "M2U00043MPG",
+    "M2U00045MPG",
+    "M2U00048MPG",
+    "M2U00050MPG"
+]
+folds[2]["val"] = [
+    "M2U00004MPG",
+    "M2U00005MPG",
+    "M2U00006MPG",
+    "M2U00012MPG",
+    "M2U00015MPG",
+    "M2U00022MPG",
+    "M2U00026MPG",
+    "M2U00035MPG",
+    "M2U00046MPG",
+    "M2U00047MPG"
+]
+folds[3]["train"] = [
+    "M2U00001MPG",
+    "M2U00002MPG",
+    "M2U00003MPG",
+    "M2U00004MPG",
+    "M2U00005MPG",
+    "M2U00006MPG",
+    "M2U00007MPG",
+    "M2U00008MPG",
+    "M2U00012MPG",
+    "M2U00017MPG",
+    "M2U00015MPG",
+    "M2U00016MPG",
+    "M2U00019MPG",
+    "M2U00022MPG",
+    "M2U00023MPG",
+    "M2U00025MPG",
+    "M2U00026MPG",
+    "M2U00027MPG",
+    "M2U00030MPG",
+    "M2U00032MPG",
+    "M2U00033MPG",
+    "M2U00035MPG",
+    "M2U00036MPG",
+    "M2U00046MPG",
+    "M2U00047MPG",
+    "M2U00048MPG",
+    "M2U00050MPG"
+]
+folds[3]["val"] = [
+    "M2U00014MPG",
+    "M2U00018MPG",
+    "M2U00024MPG",
+    "M2U00029MPG",
+    "M2U00031MPG",
+    "M2U00037MPG",
+    "M2U00039MPG",
+    "M2U00043MPG",
+    "M2U00045MPG"
+]
+folds[4]["train"] = [
+    "M2U00001MPG",
+    "M2U00002MPG",
+    "M2U00004MPG",
+    "M2U00005MPG",
+    "M2U00006MPG",
+    "M2U00007MPG",
+    "M2U00014MPG",
+    "M2U00017MPG",
+    "M2U00015MPG",
+    "M2U00016MPG",
+    "M2U00019MPG",
+    "M2U00023MPG",
+    "M2U00024MPG",
+    "M2U00025MPG",
+    "M2U00026MPG",
+    "M2U00027MPG",
+    "M2U00029MPG",
+    "M2U00030MPG",
+    "M2U00031MPG",
+    "M2U00032MPG",
+    "M2U00033MPG",
+    "M2U00035MPG",
+    "M2U00037MPG",
+    "M2U00039MPG",
+    "M2U00043MPG",
+    "M2U00045MPG",
+    "M2U00046MPG",
+    "M2U00047MPG"
+]
+folds[4]["val"] = [
+    "M2U00003MPG",
+    "M2U00008MPG",
+    "M2U00012MPG",
+    "M2U00018MPG",
+    "M2U00022MPG",
+    "M2U00036MPG",
+    "M2U00048MPG",
+    "M2U00050MPG"
+]
+folds[5]["train"] = [
+    "M2U00001MPG",
+    "M2U00002MPG",
+    "M2U00003MPG",
+    "M2U00004MPG",
+    "M2U00012MPG",
+    "M2U00014MPG",
+    "M2U00017MPG",
+    "M2U00015MPG",
+    "M2U00016MPG",
+    "M2U00022MPG",
+    "M2U00025MPG",
+    "M2U00026MPG",
+    "M2U00029MPG",
+    "M2U00030MPG",
+    "M2U00031MPG",
+    "M2U00032MPG",
+    "M2U00033MPG",
+    "M2U00035MPG",
+    "M2U00036MPG",
+    "M2U00037MPG",
+    "M2U00039MPG",
+    "M2U00043MPG",
+    "M2U00045MPG",
+    "M2U00046MPG",
+    "M2U00047MPG",
+    "M2U00048MPG",
+    "M2U00050MPG"
+]
+folds[5]["val"] = [
+    "M2U00005MPG",
+    "M2U00006MPG",
+    "M2U00007MPG",
+    "M2U00008MPG",
+    "M2U00018MPG",
+    "M2U00019MPG",
+    "M2U00023MPG",
+    "M2U00024MPG",
+    "M2U00027MPG"
+]
+folds[6]["train"] = [
+    "M2U00001MPG",
+    "M2U00002MPG",
+    "M2U00003MPG",
+    "M2U00004MPG",
+    "M2U00005MPG",
+    "M2U00006MPG",
+    "M2U00007MPG",
+    "M2U00008MPG",
+    "M2U00016MPG",
+    "M2U00018MPG",
+    "M2U00019MPG",
+    "M2U00023MPG",
+    "M2U00024MPG",
+    "M2U00025MPG",
+    "M2U00027MPG",
+    "M2U00032MPG",
+    "M2U00033MPG",
+    "M2U00035MPG",
+    "M2U00036MPG",
+    "M2U00037MPG",
+    "M2U00039MPG",
+    "M2U00043MPG",
+    "M2U00045MPG",
+    "M2U00046MPG",
+    "M2U00047MPG",
+    "M2U00048MPG",
+    "M2U00050MPG"
+]
+folds[6]["val"] = [
+    "M2U00012MPG",
+    "M2U00014MPG",
+    "M2U00017MPG",
+    "M2U00015MPG",
+    "M2U00022MPG",
+    "M2U00026MPG",
+    "M2U00029MPG",
+    "M2U00030MPG",
+    "M2U00031MPG"
+]
+folds[7]["train"] = [
+    "M2U00001MPG",
+    "M2U00002MPG",
+    "M2U00004MPG",
+    "M2U00005MPG",
+    "M2U00006MPG",
+    "M2U00007MPG",
+    "M2U00008MPG",
+    "M2U00014MPG",
+    "M2U00017MPG",
+    "M2U00016MPG",
+    "M2U00018MPG",
+    "M2U00022MPG",
+    "M2U00023MPG",
+    "M2U00025MPG",
+    "M2U00026MPG",
+    "M2U00027MPG",
+    "M2U00030MPG",
+    "M2U00031MPG",
+    "M2U00033MPG",
+    "M2U00035MPG",
+    "M2U00036MPG",
+    "M2U00037MPG",
+    "M2U00039MPG",
+    "M2U00043MPG",
+    "M2U00045MPG",
+    "M2U00050MPG"
+]
+folds[7]["val"] = [
+    "M2U00003MPG",
+    "M2U00012MPG",
+    "M2U00015MPG",
+    "M2U00019MPG",
+    "M2U00024MPG",
+    "M2U00029MPG",
+    "M2U00032MPG",
+    "M2U00046MPG",
+    "M2U00047MPG",
+    "M2U00048MPG"
+]
+folds[8]["train"] = [
+    "M2U00003MPG",
+    "M2U00005MPG",
+    "M2U00006MPG",
+    "M2U00007MPG",
+    "M2U00012MPG",
+    "M2U00014MPG",
+    "M2U00017MPG",
+    "M2U00015MPG",
+    "M2U00016MPG",
+    "M2U00019MPG",
+    "M2U00022MPG",
+    "M2U00023MPG",
+    "M2U00024MPG",
+    "M2U00026MPG",
+    "M2U00027MPG",
+    "M2U00029MPG",
+    "M2U00030MPG",
+    "M2U00031MPG",
+    "M2U00032MPG",
+    "M2U00033MPG",
+    "M2U00036MPG",
+    "M2U00037MPG",
+    "M2U00042MPG",
+    "M2U00043MPG",
+    "M2U00045MPG",
+    "M2U00047MPG",
+    "M2U00050MPG"
+]
+folds[8]["val"] = [
+    "M2U00001MPG",
+    "M2U00002MPG",
+    "M2U00004MPG",
+    "M2U00008MPG",
+    "M2U00018MPG",
+    "M2U00025MPG",
+    "M2U00035MPG",
+    "M2U00039MPG",
+    "M2U00041MPG",
+    "M2U00046MPG",
+    "M2U00048MPG"
+]
+folds[9]["train"] = [
+    "M2U00001MPG",
+    "M2U00004MPG",
+    "M2U00005MPG",
+    "M2U00006MPG",
+    "M2U00008MPG",
+    "M2U00014MPG",
+    "M2U00017MPG",
+    "M2U00015MPG",
+    "M2U00018MPG",
+    "M2U00022MPG",
+    "M2U00023MPG",
+    "M2U00024MPG",
+    "M2U00025MPG",
+    "M2U00026MPG",
+    "M2U00029MPG",
+    "M2U00030MPG",
+    "M2U00031MPG",
+    "M2U00032MPG",
+    "M2U00035MPG",
+    "M2U00036MPG",
+    "M2U00037MPG",
+    "M2U00039MPG",
+    "M2U00041MPG",
+    "M2U00043MPG",
+    "M2U00045MPG",
+    "M2U00046MPG",
+    "M2U00048MPG",
+    "M2U00050MPG"
+]
+folds[9]["val"] = [
+    "M2U00002MPG",
+    "M2U00003MPG",
+    "M2U00007MPG",
+    "M2U00012MPG",
+    "M2U00016MPG",
+    "M2U00019MPG",
+    "M2U00027MPG",
+    "M2U00033MPG",
+    "M2U00042MPG",
+    "M2U00047MPG"
+]
