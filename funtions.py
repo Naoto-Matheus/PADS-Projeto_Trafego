@@ -93,7 +93,7 @@ class LSTM_Network(nn.Module):
 
     def forward(self, x):
         if self.use_batchnorm:
-            x = x.permute(0, 2, 1)  # (batch, timesteps, features) - (batch, features, timesteps)
+            x = x.permute(0, 2, 1)  # (batch, timesteps, features) → (batch, features, timesteps)
             x = self.batchnorm(x)
             x = x.permute(0, 2, 1)  # Volta para (batch, timesteps, features)
 
@@ -126,14 +126,17 @@ class LSTM_Dataset(Dataset):
 
     def __init__(self, folds,fold_number,mode,overlap,causal,n_steps):
         '''Define os valores iniciais.'''
-        self.m = mode
+        self.mode = mode
+        
         self.fold_number = fold_number
+            
         self.frames_list = []
         self.pressures_list = []
         self.list_of_all_frames = []
         self.list_of_all_pressures = []
         self.overlap = overlap
-
+        print(self.fold_number)
+        
         ## Serve Apenas para o 10F 
         
         if name_Folds == '10F':
@@ -147,8 +150,10 @@ class LSTM_Dataset(Dataset):
             number_of_frames_train_filename = NOF_308_344 +"nof_train_"+name_Folds+".npy"
             number_of_frames_test_filename = NOF_308_344 +"nof_validation_"+name_Folds+".npy"
         
-        
-
+        elif (name_Folds == 'f4'):
+            number_of_frames_train_filename = CONST_STR_DATASET_FOLDS_DATAPATH+'fold_4'+"_train_numberofframes.npy"
+            number_of_frames_test_filename = CONST_STR_DATASET_FOLDS_DATAPATH+'fold_4'+"_test_numberofframes"+".npy"
+ 
         try:
             training_nof = np.load(number_of_frames_train_filename)
             testing_nof = np.load(number_of_frames_test_filename)
@@ -159,7 +164,13 @@ class LSTM_Dataset(Dataset):
             exit(1)
         
         for video_index in folds[self.fold_number][self.m]:
-          
+            if self.mode == 'val':
+                mode_mtl = 'test'
+            elif self.mode == 'train':
+                mode_mtl = 'train'
+            else:
+                print("Modo não encontrado")
+                exit(1)
             # Arquivos do felipe
             if (FEATURES == 'Felipe'):
                 training_frames = np.load(os.path.join(PATH_FEATURES_FELIPE + video_index +'_features.npy'))
@@ -171,10 +182,23 @@ class LSTM_Dataset(Dataset):
                 training_targets = np.mean(training_targets, axis=1) 
             
  
-            # Arquivo para o uso dos targets do matheus
+            # Arquivo para o uso dos targets do matheus 
+            #[NOTE: Isso não parece certo...]
             if (FEATURES == 'Matheus'):
                 training_targets = np.load('/home/mathlima/dataset/' + video_index +'/output_targets.npy')
-                training_targets = np.mean(training_targets, axis=1)
+                training_targets = np.mean(training_targets, axis=1) 
+
+            #Features que eu fiz utilizando as estatisticas variaveis e folds inteiros
+            if (FEATURES == 'MatheusNaotoF'):
+                
+                # isso é um JEITINHO deve ter maneira mais otimizadas de fazer para usar apenas o fold4 do 10F
+                if (name_Folds == 'f4'):
+                    training_targets = np.load('/home/mathlima/dataset/folds/' +'fold_4_'+mode_mtl+'_output_data.npy')
+                else:
+                    training_targets = np.load('/home/mathlima/dataset/folds/' +'fold_'+str(self.fold_number)+'_'+mode_mtl+'_output_data.npy')
+                
+                    
+            
 
             if (FEATURES == 'MatheusNaoto'):
                 training_targets = np.load('/home/mathlima/dataset/' + video_index +'/output_targets.npy')
@@ -185,7 +209,7 @@ class LSTM_Dataset(Dataset):
                 training_targets = np.load(os.path.join(PATH_DATA_TO_EXTRACTION + video_index + '/audioData.npy'))
                 training_targets = np.mean(training_targets, axis=1)
 
-            if (FEATURES == 'Matheus') or (FEATURES == 'MatheusNaoto'):
+            if (FEATURES == 'Matheus') or (FEATURES == 'MatheusNaoto') or (FEATURES == 'MatheusNaotoF') :
                 pass
             else:
                 self.frames_list.append(training_frames) ##Desmarcar QUANDO NAO É MATHEUS_LIMA - ARRUMAR
@@ -206,33 +230,51 @@ class LSTM_Dataset(Dataset):
         if (FEATURES == 'Matheus'):
             # features-train do matheus
             path_matheus = '/home/mathlima/dataset/folds/vgg16/'
-            if self.m == 'train':
+            if self.mode == 'train':
                 training_frames = np.load(path_matheus+'fold_'+ str(self.fold_number)+'_train_input_data_gap.npy')
                 
                 
             else:
                 training_frames = np.load(path_matheus+'fold_'+ str(self.fold_number)+'_test_input_data_gap.npy')
             
-
+            
             self.frames_array = np.array(training_frames)
             if (FEATURES == 'Matheus'):
                 self.frames_array = torch.from_numpy(training_frames).float() # isso para as features do matheus!
             else:
                 pass
         elif (FEATURES == 'MatheusNaoto'):
-            if self.m == 'train':
+            if self.mode == 'train':
                 training_frames = np.load(PATH_FEATURES_MATHEUSN+'fold'+ str(self.fold_number)+'_train_features_matheusnaoto.npy')
             else:
                 training_frames = np.load(PATH_FEATURES_MATHEUSN+'fold'+ str(self.fold_number)+'_val_features_matheusnaoto.npy')
-            
-
-            self.frames_array = np.array(training_frames)  
+            self.frames_array = np.array(training_frames)
             if (FEATURES == 'MatheusNaoto'):
                 self.frames_array = torch.from_numpy(training_frames).float() # isso para as features do matheus!
             else:
-                pass
+                pass 
+            
+        elif (FEATURES == 'MatheusNaotoF'):
+            if self.mode == 'train':
+                if (name_Folds == 'f4'):
+                    training_frames = np.load(PATH_FEATURES_MATHEUSNAOTOF+'Fold_4_train_features.npy')
+                else:
+                    training_frames = np.load(PATH_FEATURES_MATHEUSNAOTOF+'Fold_'+ str(self.fold_number)+'_train_features.npy')
+                
+            else:
+                if (name_Folds == 'f4'):
+                    training_frames = np.load(PATH_FEATURES_MATHEUSNAOTOF+'Fold_4_val_features.npy')
+                else:
+                    training_frames = np.load(PATH_FEATURES_MATHEUSNAOTOF+'Fold_'+ str(self.fold_number)+'_val_features.npy')
+
+
+            self.frames_array = torch.from_numpy(training_frames).float() # isso para as features do matheus!
+            
         else:
             self.frames_array = torch.from_numpy(self.frames_array).float()
+            mean = torch.mean(self.frames_array)
+            std = torch.std(self.frames_array)
+            print ('MEDIA 308: ',mean, '... STD 308: ', std)
 
         
         
@@ -276,13 +318,14 @@ class LSTM_Dataset(Dataset):
             
             target_size = int((n_steps)/2)
             
-            if self.m == "train":
+            if self.mode == "train":
                 frame_sum = 0   # This variable keeps track of what frame in testing_images is being processed now
                 
-                #exit(sum(training_nof))
                 for i in range(len(training_nof)):  # For each video in testing_images . . .
-
+                    # print('training_nof_sum'+str(np.sum(training_nof)))
                     start_index = frame_sum+n_steps
+                    
+                    # print(len(self.frames_array))
                     end_index = frame_sum+training_nof[i]
 
                     
@@ -292,14 +335,14 @@ class LSTM_Dataset(Dataset):
                         
                         X.append(np.reshape(self.frames_array[indices], (n_steps, 512))) ##512 que é a saida da VGG16 (7,7,512)
                         y.append(self.pressures_array[j-target_size])
-                        print(j-target_size)
+                        #print(j-target_size)
 
                     frame_sum += training_nof[i]
                 
                     #print('frames_Sum: ', frame_sum)
                 #print(end_index)
 
-            elif self.m == 'val':
+            elif self.mode == 'val':
                 frame_sum = 0   # This variable keeps track of what frame in testing_images is being processed now
                 for i in range(len(testing_nof)):  # For each video in testing_images . . .
                     
@@ -386,6 +429,7 @@ class VGG_Network(nn.Module):
             self.layers.append(nn.Linear(size_current, size_index))
             size_current = size_index
         self.layers.append(nn.Linear(size_current, output_size))
+
         self.dropout = nn.Dropout(dropout_value)
 
     def forward(self, x):
@@ -420,8 +464,16 @@ class VGG_Dataset(Dataset):
         self.list_of_all_frames = []
         self.list_of_all_pressures = []
         
+        
+
         for video_index in folds[self.fold_number][self.mode]:
-            
+            if self.mode == 'val':
+                mode_mtl = 'test'
+            elif self.mode == 'train':
+                mode_mtl = 'train'
+            else:
+                print("Modo não encontrado")
+                exit(1)
             # Meus arquivos de features     
             #training_frames = np.load(os.path.join(PATH_FEATURES_CAROL,'Features_'+video_index+'.npy'))
             #training_targets = np.load(os.path.join(PATH_FEATURES_CAROL,'Sound-Pressures_'+ video_index +'.npy'))
@@ -454,7 +506,16 @@ class VGG_Dataset(Dataset):
                 training_targets = np.load(os.path.join(PATH_DATA_TO_EXTRACTION + video_index + '/audioData.npy'))
                 training_targets = np.mean(training_targets, axis=1)
            
-            if (FEATURES == 'Matheus') or (FEATURES == 'MatheusNaoto'):
+
+            if (FEATURES == 'MatheusNaotoF'):
+                
+                # isso é um JEITINHO deve ter maneira mais otimizadas de fazer para usar apenas o fold4 do 10F
+                if (name_Folds == 'f4'):
+                    training_targets = np.load('/home/mathlima/dataset/folds/' +'fold_4_'+mode_mtl+'_output_data.npy')
+                else:
+                    training_targets = np.load('/home/mathlima/dataset/folds/' +'fold_'+str(self.fold_number)+'_'+mode_mtl+'_output_data.npy')
+
+            if (FEATURES == 'Matheus') or (FEATURES == 'MatheusNaoto') or (FEATURES == 'MatheusNaotoF'):
                 pass
             else:
                 self.frames_list.append(training_frames) ##Desmarcar QUANDO NAO É MATHEUS_LIMA - ARRUMAR
@@ -481,31 +542,62 @@ class VGG_Dataset(Dataset):
             else:
                 training_frames = np.load(path_matheus+'fold_'+ str(self.fold_number)+'_test_input_data_gap.npy')
             #print(training_frames)
-            
             self.frames_array = np.array(training_frames)
             if (FEATURES == 'Matheus'):
                 self.frames_array = torch.from_numpy(training_frames).float() # isso para as features do matheus!
             else:
                 pass
-            #self.frames_array = torch.from_numpy(training_frames).float() # isso para as features do matheus!
-            #print(self.frames_array)
-            #print(np.shape(self.frames_array))
+
+
+
+        elif (FEATURES == 'MatheusNaoto'):
+            if self.mode == 'train':
+                training_frames = np.load(PATH_FEATURES_MATHEUSN+'fold'+ str(self.fold_number)+'_train_features_matheusnaoto.npy')
+            else:
+                training_frames = np.load(PATH_FEATURES_MATHEUSN+'fold'+ str(self.fold_number)+'_val_features_matheusnaoto.npy')
+            self.frames_array = np.array(training_frames)
+            if (FEATURES == 'MatheusNaoto'):
+                self.frames_array = torch.from_numpy(training_frames).float() # isso para as features do matheus!
+            else:
+                pass 
+
+
+        elif (FEATURES == 'MatheusNaotoF'):
+            if self.mode == 'train':
+                if (name_Folds == 'f4'):
+                    training_frames = np.load(PATH_FEATURES_MATHEUSNAOTOF+'Fold_4_train_features.npy')
+                else:
+                    training_frames = np.load(PATH_FEATURES_MATHEUSNAOTOF+'Fold_'+ str(self.fold_number)+'_train_features.npy')
+                
+            else:
+                if (name_Folds == 'f4'):
+                    training_frames = np.load(PATH_FEATURES_MATHEUSNAOTOF+'Fold_4_val_features.npy')
+                else:
+                    training_frames = np.load(PATH_FEATURES_MATHEUSNAOTOF+'Fold_'+ str(self.fold_number)+'_val_features.npy')
            
+            self.frames_array = torch.from_numpy(training_frames).float() # isso para as features do matheus!
+
+
+        
         else:
             self.frames_array = torch.from_numpy(self.frames_array).float()
+            mean = torch.mean(self.frames_array)
+            std = torch.std(self.frames_array)
+            print ('MEDIA 308: ',mean, '... STD 308: ', std)
+
 
         
         self.pressures_array = torch.from_numpy(self.pressures_array).float()
-        if (FEATURES == 'Matheus') or (FEATURES == 'MatheusNaoto'):
+        if (FEATURES == 'Matheus') or (FEATURES == 'MatheusNaoto') or (FEATURES == 'MatheusNaotoF'):
             self.data_len = len(self.frames_array)#USAR PARA FRAMES DO MATHEUS_LIMA
         
         else:
             self.data_len = len(self.list_of_all_frames)  ##USAR PARA FEATURES DO FELIPE
         #self.data_len = len(self.frames_array)  #USAR PARA FRAMES DO MATHEUS_LIMA
 
+
     def __getitem__(self, index): # indice do fold escolhido e modo de treino ou validação
         '''Retorna o item de número determinado pelo indice'''
-
         return self.frames_array[index],self.pressures_array[index]
 
     def __len__(self):
@@ -517,7 +609,8 @@ class VGG_Dataset(Dataset):
 def train(model,train_dataset,loss_function,optimizer,batch_grid):
     model.train(True)
     train_loss = 0.0
-    running_loss = 0 #variavel para debug 
+
+    
     train_loader = DataLoader(train_dataset,batch_size=batch_grid,shuffle=OPTION_SHUFFLE,num_workers=OPTION_NUM_WORKERS)
     
     for i,data in enumerate(train_loader): 
@@ -548,7 +641,9 @@ def train(model,train_dataset,loss_function,optimizer,batch_grid):
         
         #torch.save(model.state_dict(), checkpoint_path1)
 
-        optimizer.step()
+        optimizer.step() #self.frames_array = torch.from_numpy(training_frames).float() # isso para as features do matheus!
+            #print(self.frames_array)
+            #print(np.shape(self.frames_array))
         #torch.save(model.state_dict(), checkpoint_path2)
 
         
@@ -753,24 +848,42 @@ def graphic_of_fold_val_train_predictions(df_val_pressures,df_val_prediction,df_
     plt.clf()
 
 # Função que salva o estado dos códigos no início do treino
-def save_current_version_of_codes(time_file):
-  
-    source_train = os.getcwd() + "/train.py"
-    destination_train = os.getcwd()+"/Res_Feat_ML/"+time_file+"/train.py"
-    
-    source_utils = os.getcwd()+"/utils.py"
-    destination_utils = os.getcwd()+"/Res_Feat_ML/"+time_file+"/utils.py"
+def save_current_version_of_codes(time_file, LSTM):
+    if LSTM:
+        source_train = os.getcwd() + "/train.py"
+        destination_train = os.getcwd()+"/res_tcc/"+"LSTM_"+time_file+"/train.py"
+        
+        source_utils = os.getcwd()+"/utils.py"
+        destination_utils = os.getcwd()+"/res_tcc/"+"LSTM_"+time_file+"/utils.py"
 
-    source_functions = os.getcwd()+"/functions.py"
-    destination_functions = os.getcwd()+"/Res_Feat_ML/"+time_file+"/functions.py"
+        source_functions = os.getcwd()+"/functions.py"
+        destination_functions = os.getcwd()+"/res_tcc/"+"LSTM_"+time_file+"/functions.py"
 
-    os.system('cp '+source_train+' '+destination_train)
-    os.system('cp '+source_utils+' '+destination_utils)
-    os.system('cp '+source_functions+' '+destination_functions)
+        os.system('cp '+source_train+' '+destination_train)
+        os.system('cp '+source_utils+' '+destination_utils)
+        os.system('cp '+source_functions+' '+destination_functions)
 
-    os.system('mv '+destination_train+' '+os.getcwd()+"/Res_Feat_ML/"+time_file+"/train-"+time_file+".py")
-    os.system('mv '+destination_utils+' '+os.getcwd()+"/Res_Feat_ML/"+time_file+"/utils-"+time_file+".py")
-    os.system('mv '+destination_functions+' '+os.getcwd()+"/Res_Feat_ML/"+time_file+"/functions-"+time_file+".py")
+        os.system('mv '+destination_train+' '+os.getcwd()+"/res_tcc/"+"LSTM_"+time_file+"/train-"+time_file+".py")
+        os.system('mv '+destination_utils+' '+os.getcwd()+"/res_tcc/"+"LSTM_"+time_file+"/utils-"+time_file+".py")
+        os.system('mv '+destination_functions+' '+os.getcwd()+"/res_tcc/"+"LSTM_"+time_file+"/functions-"+time_file+".py")
+    else:
+        source_train = os.getcwd() + "/train.py"
+        destination_train = os.getcwd()+"/res_tcc/"+"VGG_"+time_file+"/train.py"
+        
+        source_utils = os.getcwd()+"/utils.py"
+        destination_utils = os.getcwd()+"/res_tcc/"+"VGG_"+time_file+"/utils.py"
+
+        source_functions = os.getcwd()+"/functions.py"
+        destination_functions = os.getcwd()+"/res_tcc/"+"VGG_"+time_file+"/functions.py"
+
+        os.system('cp '+source_train+' '+destination_train)
+        os.system('cp '+source_utils+' '+destination_utils)
+        os.system('cp '+source_functions+' '+destination_functions)
+
+        os.system('mv '+destination_train+' '+os.getcwd()+"/res_tcc/"+"VGG_"+time_file+"/train-"+time_file+".py")
+        os.system('mv '+destination_utils+' '+os.getcwd()+"/res_tcc/"+"VGG_"+time_file+"/utils-"+time_file+".py")
+        os.system('mv '+destination_functions+' '+os.getcwd()+"/res_tcc/"+"VGG_"+time_file+"/functions-"+time_file+".py")
+
 
 def graphic_of_training_bt(FOLD,train_lstm,train_mlp,val_lstm,val_mlp, path):
     print(train_lstm)
